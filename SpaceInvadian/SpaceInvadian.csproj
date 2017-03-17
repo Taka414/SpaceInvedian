@@ -96,20 +96,22 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Resource Include="Assets\bullet.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Assets\own.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Assets\block.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Assets\ika.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Assets\ufo.png" />
+    <Resource Include="Assets\enm_b_1.png" />
+    <Resource Include="Assets\enm_b_2png.png" />
+    <Resource Include="Assets\enm_b_b.png" />
+    <Resource Include="Assets\exp.png" />
+    <Resource Include="Assets\inv_1_1.png" />
+    <Resource Include="Assets\inv_1_2.png" />
+    <Resource Include="Assets\inv_2_1.png" />
+    <Resource Include="Assets\inv_2_2.png" />
+    <Resource Include="Assets\inv_3_1.png" />
+    <Resource Include="Assets\inv_3_2.png" />
+    <Resource Include="Assets\inv_ufo.png" />
+    <Resource Include="Assets\own_air.png" />
+    <Resource Include="Assets\own_bullet.png" />
+    <Resource Include="Assets\own_bullet_b.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
