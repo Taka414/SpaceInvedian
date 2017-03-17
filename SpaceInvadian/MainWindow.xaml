@@ -5,14 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SpaceInvadian"
         mc:Ignorable="d"
-        Title="MainWindow"
-        Height="450"
-        Width="600"
+        Title="Space Invadian"
+        Height="600"
+        Width="570"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="ToolWindow"
         Background="Black"
         Loaded="Window_Loaded"
         KeyDown="Window_KeyDown"
         KeyUp="Window_KeyUp"
         RenderOptions.BitmapScalingMode="NearestNeighbor">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="./font/#PixelMplus10"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="25"/>
+        </Style>
+    </Window.Resources>
 
     <DockPanel Margin="10">
 
@@ -20,30 +30,14 @@
         <StackPanel DockPanel.Dock="Top"
                     Orientation="Horizontal">
             <TextBlock Margin="0 0 10 0" 
-                       Text="Score"
-                       Foreground="White"/>
+                       Text="Score"/>
             <TextBlock x:Name="TextBlockScore"
-                       Text="500"
-                       Foreground="White"/>
+                       Text="500"/>
         </StackPanel>
 
         <!-- 実際のゲーム画面 -->
         <Canvas x:Name="Canvas">
-            <!--<Image Canvas.Top="295" Canvas.Left="105" Source="/Assets/block.png" Width="16" Height="16"/>
-            <Image Canvas.Top="312" Canvas.Left="71" Source="/Assets/block.png" Width="16" Height="16"/>
-            <Image Canvas.Top="312" Canvas.Left="88" Source="/Assets/block.png" Width="16" Height="16"/>
-            <Image Canvas.Top="295" Canvas.Left="88" Source="/Assets/block.png" Width="16" Height="16"/>
-            <Image Canvas.Top="295" Canvas.Left="71" Source="/Assets/block.png" Width="16" Height="16"/>
-            <Image Canvas.Top="312" Canvas.Left="105" Source="Assets/block.png" Width="16" Height="16"/>
-            <Image Canvas.Top="329" Canvas.Left="71" Source="Assets/block.png" Width="16" Height="16"/>
-            <Image Canvas.Top="329" Canvas.Left="88" Source="Assets/block.png" Width="16" Height="16"/>-->
-            <!--<Image Canvas.Top="94" Canvas.Left="273" Source="Assets/ika.png" Width="32" Height="32"/>-->
-            <Image x:Name="Ufo"
-                   Canvas.Top="10" 
-                   Canvas.Left="10" 
-                   Source="Assets/ufo.png" 
-                   Width="32" 
-                   Height="16"/>
+            <!--<Image Source="/Assets/inv_1_1.png" Width="24" Height="24" Canvas.Left="15" Canvas.Top="100"/>-->
         </Canvas>
     </DockPanel>
 </Window>
