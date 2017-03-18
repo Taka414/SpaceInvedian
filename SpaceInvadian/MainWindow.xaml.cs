@@ -162,8 +162,6 @@ namespace SpaceInvadian
             {
                 this.Dispatcher.Invoke(() =>
                 {
-                    //testImg.UpdateNext();
-
                     this.moveOwn();
 
                     this.updateOwnBullet();
@@ -173,6 +171,10 @@ namespace SpaceInvadian
                     this.updateEnemyExp();
 
                     this.updateEnemy();
+
+                    this.putEnemyBullet();
+
+                    this.updateEnemyBullet();
 
                 });
 
@@ -302,8 +304,6 @@ namespace SpaceInvadian
             }
         }
 
-        //private AnimationImage testImg;
-
         //
         // 自機の操作
         // - - - - - - - - - - - - - - - - - - - -
@@ -432,6 +432,100 @@ namespace SpaceInvadian
         {
             this.Canvas.Children.Remove(ownBullet);
             this.ownBulletList.Remove(ownBullet);
+        }
+
+        /// <summary>敵が弾を発射する間隔</summary>
+        private int enemyBulletFireInterval = 40;
+        /// <summary>敵の弾を発射するタイマー変数</summary>
+        private int enemyBulletFireTimer = 0;
+        /// <summary>敵の弾のリスト</summary>
+        private List<AnimationImage> enemyBulletList = new List<AnimationImage>();
+
+        /// <summary>
+        /// 指定した座標上に敵の弾を画面上に配置します。
+        /// </summary>
+        private void putEnemyBullet()
+        {
+            // 弾の発射タイミングかどうかを判定
+            //  - 一定秒数経過
+            //  - 弾が画面上に3発以下なら発射
+            if (this.enemyBulletFireTimer <= this.enemyBulletFireInterval || 
+                this.enemyBulletList.Count >= 3)
+            {
+                this.enemyBulletFireTimer++;
+                return;
+            }
+
+            // 弾を発射する敵の選定
+            AnimationImage enemy_target = null;
+
+            double own_left = Canvas.GetLeft(this.own);
+            double own_right = own_left + this.own.Width;
+
+            // 自分の直上の一番手前の選定
+            foreach (var enemy in this.enemyList)
+            {
+                double enemy_left = Canvas.GetLeft(enemy.CurrentImage);
+                double enemy_right = enemy_left + enemy.CurrentImage.Width;
+
+                if(own_left >= enemy_left && own_left <= enemy_right ||
+                   own_right >= enemy_left && own_right <= enemy_right)
+                {
+                    enemy_target = enemy;
+                }
+            }
+
+            if(enemy_target == null)
+            {
+                return;
+            }
+
+            var enemyBullet = new AnimationImage(this.Canvas)
+            {
+                Delay = 10,
+            };
+            //enemyBullet.AddImage("/Assets/enm_b_1.png", 6, 14);
+            enemyBullet.AddImage("/Assets/inv_1_1.png", 6, 14);
+            enemyBullet.AddImage("/Assets/enm_b_2.png", 6, 14);
+            enemyBullet.Init();
+
+            Canvas.SetTop(enemyBullet.CurrentImage, Canvas.GetTop(enemy_target.CurrentImage) + enemy_target.CurrentImage.Height + 5);
+            GameUtil.SetCenter(enemy_target.CurrentImage, enemyBullet.CurrentImage);
+
+            this.enemyBulletList.Add(enemyBullet);
+
+            this.enemyBulletFireTimer = 0;
+        }
+
+        /// <summary>
+        /// 敵の弾を更新します。
+        /// </summary>
+        private void updateEnemyBullet()
+        {
+            for(int i = this.enemyBulletList.Count; i > 0; i--)
+            {
+                var enemyBullet = this.enemyBulletList[i - 1];
+
+                // 自機に当たっているかを判定
+                // あとで
+
+                // 一番手前まで来たかどうか判定
+                if(Canvas.GetTop(enemyBullet.CurrentImage) + enemyBullet.CurrentImage.Height >= this.Canvas.ActualHeight)
+                {
+                    // 爆発表現を追加
+                    //this.putOwnBulletExp(enemyBullet.CurrentImage);
+
+                    // 管理から取り除く
+                    this.Canvas.Children.Remove(enemyBullet.CurrentImage);
+                    this.enemyBulletList.Remove(enemyBullet);
+
+                    continue;
+                }
+
+                // 移動処理
+                Canvas.SetTop(enemyBullet.CurrentImage, Canvas.GetTop(enemyBullet.CurrentImage) + 3);
+                enemyBullet.UpdateNext();
+            }
         }
 
         //
@@ -658,6 +752,16 @@ namespace SpaceInvadian
         /// </summary>
         public int OptionValue { get; set; }
 
+        /// <summary>
+        /// Updateを何回呼べば次の画像へ移行するかを遅延する回数
+        /// </summary>
+        public int Delay { get; set; } = 1;
+
+        /// <summary>
+        /// 現在のスキップ回数
+        /// </summary>
+        public int DelayCurrent { get; private set; }
+
         //
         // Constructors
         // - - - - - - - - - - - - - - - - - - - -
@@ -721,6 +825,14 @@ namespace SpaceInvadian
         /// </summary>
         public void UpdateNext()
         {
+            if (!(this.DelayCurrent >= this.Delay))
+            {
+                this.DelayCurrent++;
+                return;
+            }
+
+            this.DelayCurrent = 0;
+
             this.canvas.Children.Remove(this.CurrentImage);
 
             double x = Canvas.GetLeft(this.CurrentImage);

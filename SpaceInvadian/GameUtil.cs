@@ -36,5 +36,13 @@ namespace SpaceInvadian
 
             return new Tuple<double, double>(left, top);
         }
+
+        /// <summary>
+        /// 第2引数に指定したオブジェクトの中心を第一引数の中心に合わせます。
+        /// </summary>
+        public static void SetCenter(FrameworkElement baseItem, FrameworkElement target)
+        {
+            Canvas.SetLeft(target, Canvas.GetLeft(baseItem) + baseItem.Width / 2 - target.Width / 2);
+        }
     }
 }

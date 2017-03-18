@@ -100,7 +100,7 @@
   <ItemGroup />
   <ItemGroup>
     <Resource Include="Assets\enm_b_1.png" />
-    <Resource Include="Assets\enm_b_2png.png" />
+    <Content Include="Assets\enm_b_2.png" />
     <Resource Include="Assets\enm_b_b.png" />
     <Resource Include="Assets\exp.png" />
     <Resource Include="Assets\inv_1_1.png" />
