@@ -71,6 +71,19 @@ namespace SpaceInvadian
         private List<AnimationImage> enemyList = new List<AnimationImage>();
         /// <summary>敵の爆発表示のリスト</summary>
         private List<TimerdImage> enemyExpList = new List<TimerdImage>();
+        /// <summary>敵の死亡モーションを管理するリスト</summary>
+        private List<TimerdImage> deadEnemyList = new List<TimerdImage>();
+
+
+        /// <summary>敵の移動速度が速くなる時間の感覚</summary>
+        private int speedupPeriod = 240;
+        /// <summary>移動速度のカウンタ</summary>
+        private int currentTime;
+        
+        /// <summary>敵機が左右の端に達しているかのフラグ</summary>
+        private bool isArraivalEnd;
+        /// <summary></summary>
+        private MoveDirection enemyMovingDirection;
 
         //
         // Constructors
@@ -191,6 +204,14 @@ namespace SpaceInvadian
 
             this.initOwn();
             this.initEnemy();
+
+            this.moveInterval = 60;
+
+            this.isArraivalEnd = false;
+            this.enemyMovingDirection = MoveDirection.Right;
+
+            this.speedupPeriod = 240;
+            this.currentTime = 0;
         }
 
         /// <summary>
@@ -198,7 +219,7 @@ namespace SpaceInvadian
         /// </summary>
         private void initOwn()
         {
-            if(this.own != null)
+            if (this.own != null)
             {
                 this.Canvas.Children.Remove(this.own);
                 this.own = null;
@@ -224,7 +245,7 @@ namespace SpaceInvadian
         private void initEnemy()
         {
             // 1列目
-            for(int i = 0; i < 11; i++)
+            for (int i = 0; i < 11; i++)
             {
                 var enemy = new AnimationImage(this.Canvas)
                 {
@@ -234,7 +255,7 @@ namespace SpaceInvadian
                 enemy.AddImage("/Assets/inv_1_2.png", 24, 24);
                 enemy.Init();
 
-                Canvas.SetTop(enemy.CurrentImage, 100);
+                Canvas.SetTop(enemy.CurrentImage, 60);
                 Canvas.SetLeft(enemy.CurrentImage, 15 + i * (24 + 22));
 
                 this.enemyList.Add(enemy);
@@ -253,28 +274,31 @@ namespace SpaceInvadian
                     enemy.AddImage("/Assets/inv_2_2.png", 33, 24);
                     enemy.Init();
 
-                    Canvas.SetTop(enemy.CurrentImage, 144 + (enemy.CurrentImage.Height + 24) * i);
+                    Canvas.SetTop(enemy.CurrentImage, 104 + (enemy.CurrentImage.Height + 24) * i);
                     Canvas.SetLeft(enemy.CurrentImage, 15 + j * (24 + 22) + ((24 - 33) / 2));
 
                     this.enemyList.Add(enemy);
                 }
             }
 
-            // 1列目
-            for (int i = 0; i < 11; i++)
+            // 4, 5列目
+            for (int i = 0; i < 2; i++)
             {
-                var enemy = new AnimationImage(this.Canvas)
+                for (int j = 0; j < 11; j++)
                 {
-                    OptionValue = 10
-                };
-                enemy.AddImage("/Assets/inv_3_1.png", 27, 24);
-                enemy.AddImage("/Assets/inv_3_2.png", 27, 24);
-                enemy.Init();
+                    var enemy = new AnimationImage(this.Canvas)
+                    {
+                        OptionValue = 10
+                    };
+                    enemy.AddImage("/Assets/inv_3_1.png", 27, 24);
+                    enemy.AddImage("/Assets/inv_3_2.png", 27, 24);
+                    enemy.Init();
 
-                Canvas.SetTop(enemy.CurrentImage, 242);
-                Canvas.SetLeft(enemy.CurrentImage, 15 + i * (24 + 22) + ((24 - 27) / 2));
+                    Canvas.SetTop(enemy.CurrentImage, 204 + (enemy.CurrentImage.Height + 24) * i);
+                    Canvas.SetLeft(enemy.CurrentImage, 15 + j * (24 + 22) + ((24 - 27) / 2));
 
-                this.enemyList.Add(enemy);
+                    this.enemyList.Add(enemy);
+                }
             }
         }
 
@@ -300,7 +324,7 @@ namespace SpaceInvadian
                 pos += 4;
             }
 
-            if(pos <= 0 || pos + this.own.Width >= this.Canvas.ActualWidth)
+            if (pos <= 0 || pos + this.own.Width >= this.Canvas.ActualWidth)
             {
                 return;
             }
@@ -317,7 +341,7 @@ namespace SpaceInvadian
         /// </summary>
         private void putOwnBullet()
         {
-            if(this.ownBulletList.Count >= 1)
+            if (this.ownBulletList.Count >= 1)
             {
                 return;
             }
@@ -397,12 +421,9 @@ namespace SpaceInvadian
                 }
 
                 // 自機の弾を移動
-                Canvas.SetTop(ownBullet, Canvas.GetTop(ownBullet) - 7);
+                Canvas.SetTop(ownBullet, Canvas.GetTop(ownBullet) - 8);
             }
         }
-
-        /// <summary>敵の死亡モーションを管理するリスト</summary>
-        private List<TimerdImage> deadEnemyList = new List<TimerdImage>();
 
         /// <summary>
         /// 自機の弾を除去します。
@@ -441,11 +462,11 @@ namespace SpaceInvadian
         /// </summary>
         private void updateOwnBulletExp()
         {
-            for(int i = this.ownBulletExpList.Count; i > 0; i--)
+            for (int i = this.ownBulletExpList.Count; i > 0; i--)
             {
                 var bulletExp = this.ownBulletExpList[i - 1];
 
-                if(bulletExp.Elapsed > 30)
+                if (bulletExp.Elapsed > 30)
                 {
                     // 取り除く
                     this.Canvas.Children.Remove(bulletExp.Image);
@@ -467,11 +488,59 @@ namespace SpaceInvadian
         /// </summary>
         private void updateEnemy()
         {
-            if(this.currentDistance > this.moveInterval)
+            if (this.currentDistance > this.moveInterval)
             {
-                foreach(var enemy in this.enemyList)
+                // 描画の更新
+                foreach (var enemy in this.enemyList)
                 {
                     enemy.UpdateNext();
+                }
+
+                // 敵の移動
+                if (this.isArraivalEnd)
+                {
+                    // 前進する
+                    foreach (var enemy in this.enemyList)
+                    {
+                        Canvas.SetTop(enemy.CurrentImage, Canvas.GetTop(enemy.CurrentImage) + 5);
+                    }
+
+                    this.isArraivalEnd = false;
+
+                    // 移動方向を入れ替え
+                    if (this.enemyMovingDirection == MoveDirection.Left)
+                    {
+                        this.enemyMovingDirection = MoveDirection.Right;
+                    }
+                    else if (this.enemyMovingDirection == MoveDirection.Right)
+                    {
+                        this.enemyMovingDirection = MoveDirection.Left;
+                    }
+                }
+                else
+                {
+                    // 左右に移動する
+                    foreach (var enemy in this.enemyList)
+                    {
+                        double moveDistance = 5;
+                        if (this.enemyMovingDirection == MoveDirection.Left)
+                        {
+                            moveDistance = moveDistance * -1; // 左へ移動を設定
+                        }
+
+                        Canvas.SetLeft(enemy.CurrentImage, Canvas.GetLeft(enemy.CurrentImage) + moveDistance);
+                    }
+
+                    // 左右にいる敵の
+                    foreach (var enemy in this.enemyList)
+                    {
+                        // 全員のうち一番右に居るやるが画面右側に到着したらフラグ立てる
+                        if (Canvas.GetLeft(enemy.CurrentImage) <= 0 || Canvas.GetLeft(enemy.CurrentImage) + enemy.CurrentImage.Width > this.Canvas.ActualWidth)
+                        {
+                            this.isArraivalEnd = true;
+                            break;
+                        }
+                    }
                 }
 
                 this.currentDistance = 0;
@@ -479,6 +548,24 @@ namespace SpaceInvadian
             else
             {
                 this.currentDistance++;
+            }
+
+            // 敵の移動速度の高速化
+            if (this.currentTime >= this.speedupPeriod)
+            {
+                // 一定速度以上は高速化しない
+                if (this.moveInterval > 20)
+                {
+
+                    this.moveInterval -= 2;
+                    this.currentTime = 0;
+
+                    Console.WriteLine("Speed up!");
+                }
+            }
+            else
+            {
+                this.currentTime++;
             }
         }
 
@@ -607,13 +694,13 @@ namespace SpaceInvadian
         /// </summary>
         public void Init()
         {
-            if(this.imageList.Count == 0)
+            if (this.imageList.Count == 0)
             {
                 return;
             }
 
             // もし何か表示していたら全部削除
-            foreach(Image img in this.imageList)
+            foreach (Image img in this.imageList)
             {
                 if (this.canvas.Children.Contains(img))
                 {
