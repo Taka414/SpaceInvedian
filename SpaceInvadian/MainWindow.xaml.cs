@@ -45,6 +45,8 @@ namespace SpaceInvadian
         // 管理系
         //
 
+        /// <summary>乱数用</summary>
+        private Random rand = new Random();
         /// <summary>スコア管理</summary>
         private ScoreManager scoreMgr;
 
@@ -73,8 +75,7 @@ namespace SpaceInvadian
         private List<TimerdImage> enemyExpList = new List<TimerdImage>();
         /// <summary>敵の死亡モーションを管理するリスト</summary>
         private List<TimerdImage> deadEnemyList = new List<TimerdImage>();
-
-
+        
         /// <summary>敵の移動速度が速くなる時間の感覚</summary>
         private int speedupPeriod = 240;
         /// <summary>移動速度のカウンタ</summary>
@@ -84,6 +85,17 @@ namespace SpaceInvadian
         private bool isArraivalEnd;
         /// <summary></summary>
         private MoveDirection enemyMovingDirection;
+
+        //
+        // 敵の弾系
+        //
+
+        /// <summary>敵が弾を発射する間隔</summary>
+        private int enemyBulletFireInterval = 40;
+        /// <summary>敵の弾を発射するタイマー変数</summary>
+        private int enemyBulletFireTimer = 0;
+        /// <summary>敵の弾のリスト</summary>
+        private List<AnimationImage> enemyBulletList = new List<AnimationImage>();
 
         //
         // Constructors
@@ -440,13 +452,6 @@ namespace SpaceInvadian
             this.ownBulletList.Remove(ownBullet);
         }
 
-        /// <summary>敵が弾を発射する間隔</summary>
-        private int enemyBulletFireInterval = 40;
-        /// <summary>敵の弾を発射するタイマー変数</summary>
-        private int enemyBulletFireTimer = 0;
-        /// <summary>敵の弾のリスト</summary>
-        private List<AnimationImage> enemyBulletList = new List<AnimationImage>();
-
         /// <summary>
         /// 指定した座標上に敵の弾を画面上に配置します。
         /// </summary>
@@ -513,9 +518,6 @@ namespace SpaceInvadian
             this.enemyBulletFireTimer = 0;
         }
 
-        /// <summary>乱数用</summary>
-        private Random rand = new Random();
-
         /// <summary>
         /// 敵の弾を更新します。
         /// </summary>
@@ -537,6 +539,9 @@ namespace SpaceInvadian
                     // 管理から取り除く
                     this.Canvas.Children.Remove(enemyBullet.CurrentImage);
                     this.enemyBulletList.Remove(enemyBullet);
+
+                    // 爆発表現の追加
+                    this.putEnemyBulletExp(enemyBullet.CurrentImage);
 
                     continue;
                 }
@@ -701,6 +706,25 @@ namespace SpaceInvadian
                     enemy.Elapsed++;
                 }
             }
+        }
+
+        /// <summary>
+        /// 敵の弾の爆発表示を行います。
+        /// </summary>
+        private void putEnemyBulletExp(Image enemyBullet)
+        {
+            var ownExp = new Image()
+            {
+                Source = new BitmapImage(new Uri("/Assets/enm_b_b_exp.png", UriKind.Relative)),
+                Width = 24,
+                Height = 24,
+            };
+
+            this.Canvas.Children.Add(ownExp);
+            this.ownBulletExpList.Add(new TimerdImage() { Image = ownExp });
+
+            Canvas.SetTop(ownExp, this.Canvas.ActualHeight - 12);
+            Canvas.SetLeft(ownExp, Canvas.GetLeft(enemyBullet) - ownExp.Width / 2);
         }
     }
 
