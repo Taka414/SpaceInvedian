@@ -251,7 +251,9 @@ namespace SpaceInvadian
             {
                 var enemy = new AnimationImage(this.Canvas)
                 {
-                    OptionValue = 30,
+                    OptionValue_1 = 30,
+                    OptionValue_X = i,
+                    OptionValue_Y = 0,
                 };
                 enemy.AddImage("/Assets/inv_1_1.png", 24, 24);
                 enemy.AddImage("/Assets/inv_1_2.png", 24, 24);
@@ -270,7 +272,9 @@ namespace SpaceInvadian
                 {
                     var enemy = new AnimationImage(this.Canvas)
                     {
-                        OptionValue = 20
+                        OptionValue_1 = 20,
+                        OptionValue_X = j,
+                        OptionValue_Y = 1 + i,
                     };
                     enemy.AddImage("/Assets/inv_2_1.png", 33, 24);
                     enemy.AddImage("/Assets/inv_2_2.png", 33, 24);
@@ -290,7 +294,9 @@ namespace SpaceInvadian
                 {
                     var enemy = new AnimationImage(this.Canvas)
                     {
-                        OptionValue = 10
+                        OptionValue_1 = 10,
+                        OptionValue_X = j,
+                        OptionValue_Y = 3 + i,
                     };
                     enemy.AddImage("/Assets/inv_3_1.png", 27, 24);
                     enemy.AddImage("/Assets/inv_3_2.png", 27, 24);
@@ -409,7 +415,7 @@ namespace SpaceInvadian
                         this.removeOwnBullet(ownBullet);
                         isBreak = true;
 
-                        this.scoreMgr.AddScore(enemy.OptionValue);
+                        this.scoreMgr.AddScore(enemy.OptionValue_1);
 
                         break;
                     }
@@ -468,24 +474,34 @@ namespace SpaceInvadian
                 double enemy_left = Canvas.GetLeft(enemy.CurrentImage);
                 double enemy_right = enemy_left + enemy.CurrentImage.Width;
 
-                if(own_left >= enemy_left && own_left <= enemy_right ||
+                if (own_left >= enemy_left && own_left <= enemy_right ||
                    own_right >= enemy_left && own_right <= enemy_right)
                 {
                     enemy_target = enemy;
                 }
             }
 
-            if(enemy_target == null)
+            if (enemy_target == null || rand.Next() % 2 == 0)
             {
-                return;
+                enemy_target = this.enemyList[this.rand.Next(0, this.enemyList.Count - 1)];
             }
+
+            // 先頭の奴を選ぶ
+            foreach(var tempEnemy in this.enemyList)
+            {
+                if(enemy_target.OptionValue_X == tempEnemy.OptionValue_X &&
+                   tempEnemy.OptionValue_Y > enemy_target.OptionValue_Y)
+                {
+                    enemy_target = tempEnemy;
+                }
+            }
+
 
             var enemyBullet = new AnimationImage(this.Canvas)
             {
-                Delay = 10,
+                Delay = 4,
             };
-            //enemyBullet.AddImage("/Assets/enm_b_1.png", 6, 14);
-            enemyBullet.AddImage("/Assets/inv_1_1.png", 6, 14);
+            enemyBullet.AddImage("/Assets/enm_b_1.png", 6, 14);
             enemyBullet.AddImage("/Assets/enm_b_2.png", 6, 14);
             enemyBullet.Init();
 
@@ -496,6 +512,9 @@ namespace SpaceInvadian
 
             this.enemyBulletFireTimer = 0;
         }
+
+        /// <summary>乱数用</summary>
+        private Random rand = new Random();
 
         /// <summary>
         /// 敵の弾を更新します。
@@ -750,12 +769,22 @@ namespace SpaceInvadian
         /// <summary>
         /// 任意の整数を設定できるフィールド
         /// </summary>
-        public int OptionValue { get; set; }
+        public int OptionValue_1 { get; set; }
+
+        /// <summary>
+        /// 任意の整数を設定できるフィールド
+        /// </summary>
+        public int OptionValue_X { get; set; }
+
+        /// <summary>
+        /// 任意の整数を設定できるフィールド
+        /// </summary>
+        public int OptionValue_Y { get; set; }
 
         /// <summary>
         /// Updateを何回呼べば次の画像へ移行するかを遅延する回数
         /// </summary>
-        public int Delay { get; set; } = 1;
+        public int Delay { get; set; } = 0;
 
         /// <summary>
         /// 現在のスキップ回数
