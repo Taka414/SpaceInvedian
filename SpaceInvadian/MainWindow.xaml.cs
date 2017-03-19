@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace SpaceInvadian
 {
@@ -109,6 +103,13 @@ namespace SpaceInvadian
         private Image ufo;
         /// <summary>UFOの得点</summary>
         private TimerdText ufoScore;
+
+        //
+        // 防御ブロック
+        //
+
+        /// <summary>防御ブロックリスト</summary>
+        private List<Image> defenceBlockList = new List<Image>();
 
         //
         // Constructors
@@ -229,12 +230,6 @@ namespace SpaceInvadian
             // スコア表示系の初期化
             this.scoreMgr = new ScoreManager(this.TextBlockScore);
             this.scoreMgr.InitScore();
-
-            //this.testImg = new AnimationImage(this.Canvas);
-            //this.testImg.AddImage("/Assets/inv_1_1.png", 24, 24);
-            //this.testImg.AddImage("/Assets/inv_1_2.png", 24, 24);
-
-            //this.testImg.Init();
 
             this.initOwn();
             this.initEnemy();
@@ -373,9 +368,6 @@ namespace SpaceInvadian
                 }
             }
         }
-
-        /// <summary>防御ブロックリスト</summary>
-        private List<Image> defenceBlockList = new List<Image>();
 
         /// <summary>
         /// ブロックの更新を行います。
@@ -837,7 +829,11 @@ namespace SpaceInvadian
         /// </summary>
         private void gameOver()
         {
+            var message = new TextBlock() { Text = "Game Over!", FontSize = 50, Foreground = new SolidColorBrush(Colors.Red) };
+            this.Canvas.Children.Add(message);
 
+            Canvas.SetTop(message, 182);
+            Canvas.SetLeft(message, 140);
         }
 
         /// <summary>
@@ -848,6 +844,12 @@ namespace SpaceInvadian
             if(this.enemyList.Count <= 0)
             {
                 this.frameUpdateTimer.Stop();
+
+                var message = new TextBlock() { Text = "Game Clear!", FontSize = 50, Foreground = new SolidColorBrush(Colors.Red) };
+                this.Canvas.Children.Add(message);
+
+                Canvas.SetTop(message, 182);
+                Canvas.SetLeft(message, 140);
             }
         }
 
@@ -955,7 +957,6 @@ namespace SpaceInvadian
         /// <summary>
         /// UFOのスコア表示を行います。
         /// </summary>
-        /// <param name="ufo"></param>
         private void putUfoText(Image ufo)
         {
             var scoreText = new TimerdText()
