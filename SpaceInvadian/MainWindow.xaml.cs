@@ -238,6 +238,7 @@ namespace SpaceInvadian
 
             this.initOwn();
             this.initEnemy();
+            this.initDefenceBlock();
 
             this.moveInterval = 60;
 
@@ -340,6 +341,60 @@ namespace SpaceInvadian
                     this.enemyList.Add(enemy);
                 }
             }
+        }
+
+        /// <summary>
+        /// 防御ブロックを初期化します。
+        /// </summary>
+        private void initDefenceBlock()
+        {
+            double top = 400;
+            double left = 60;
+            double margin = 115;
+
+            for (int ii = 0; ii < 4; ii++) {
+                for (int y = 0; y < 5; y++)
+                {
+                    for (int x = 0; x < 5; x++)
+                    {
+                        var dfblock = new Image()
+                        {
+                            Source = new BitmapImage(new Uri("/Assets/DfBlock.png", UriKind.Relative)),
+                            Width = 12,
+                            Height = 12,
+                        };
+
+                        this.defenceBlockList.Add(dfblock);
+                        this.Canvas.Children.Add(dfblock);
+
+                        Canvas.SetTop(dfblock, top + dfblock.Height * y);
+                        Canvas.SetLeft(dfblock, left + dfblock.Width * x + margin * ii);
+                    }
+                }
+            }
+        }
+
+        /// <summary>防御ブロックリスト</summary>
+        private List<Image> defenceBlockList = new List<Image>();
+
+        /// <summary>
+        /// ブロックの更新を行います。
+        /// </summary>
+        private bool updateDefenceBlockList(Image bullet)
+        {
+            for(int i = this.defenceBlockList.Count; i > 0; i--)
+            {
+                Image dfBlock = this.defenceBlockList[i - 1];
+
+                if(GameUtil.IsCollision(bullet, dfBlock))
+                {
+                    this.defenceBlockList.Remove(dfBlock);
+                    this.Canvas.Children.Remove(dfBlock);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         //
@@ -448,6 +503,13 @@ namespace SpaceInvadian
 
                         this.scoreMgr.AddScore(enemy.OptionValue_1);
 
+                        break;
+                    }
+
+                    // 防御ブロックと衝突
+                    if (this.updateDefenceBlockList(ownBullet))
+                    {
+                        this.removeOwnBullet(ownBullet);
                         break;
                     }
                 }
@@ -563,8 +625,18 @@ namespace SpaceInvadian
                     return;
                 }
 
+                // 防御ブロックと衝突判定
+                if (this.updateDefenceBlockList(enemyBullet.CurrentImage))
+                {
+                    // 管理から取り除く
+                    this.Canvas.Children.Remove(enemyBullet.CurrentImage);
+                    this.enemyBulletList.Remove(enemyBullet);
+
+                    continue;
+                }
+
                 // 一番手前まで来たかどうか判定
-                if(Canvas.GetTop(enemyBullet.CurrentImage) + enemyBullet.CurrentImage.Height >= this.Canvas.ActualHeight)
+                if (Canvas.GetTop(enemyBullet.CurrentImage) + enemyBullet.CurrentImage.Height >= this.Canvas.ActualHeight)
                 {
                     // 爆発表現を追加
                     //this.putOwnBulletExp(enemyBullet.CurrentImage);

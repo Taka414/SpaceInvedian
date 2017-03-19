@@ -115,5 +115,8 @@
     <Resource Include="Assets\own_bullet.png" />
     <Resource Include="Assets\own_bullet_b.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\DfBlock.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

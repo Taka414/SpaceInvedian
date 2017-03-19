@@ -37,7 +37,7 @@
 
         <!-- 実際のゲーム画面 -->
         <Canvas x:Name="Canvas">
-            <!--<Image Source="/Assets/inv_1_1.png" Width="24" Height="24" Canvas.Left="15" Canvas.Top="100"/>-->
+            <!--<Image Source="/Assets/DfBlock.png" Width="9" Height="9" Canvas.Left="60" Canvas.Top="420"/>-->
         </Canvas>
     </DockPanel>
 </Window>
