@@ -76,8 +76,8 @@ namespace SpaceInvadian
         /// <summary>敵の死亡モーションを管理するリスト</summary>
         private List<TimerdImage> deadEnemyList = new List<TimerdImage>();
         
-        /// <summary>敵の移動速度が速くなる時間の感覚</summary>
-        private int speedupPeriod = 240;
+        /// <summary>敵の移動速度が速くなる時間の間隔</summary>
+        private int speedupPeriod = 220;
         /// <summary>移動速度のカウンタ</summary>
         private int currentTime;
         
@@ -96,6 +96,19 @@ namespace SpaceInvadian
         private int enemyBulletFireTimer = 0;
         /// <summary>敵の弾のリスト</summary>
         private List<AnimationImage> enemyBulletList = new List<AnimationImage>();
+
+        //
+        // UFOの処理
+        //
+
+        /// <summary>UFOの出現</summary>
+        private int ufoArrivalImterval = 900;
+        /// <summary>UFOの出現タイマー</summary>
+        private int ufoArrivalTimer = 0;
+        /// <summary>UFOの画像</summary>
+        private Image ufo;
+        /// <summary>UFOの得点</summary>
+        private TimerdText ufoScore;
 
         //
         // Constructors
@@ -188,6 +201,13 @@ namespace SpaceInvadian
 
                     this.updateEnemyBullet();
 
+                    this.putUfo();
+
+                    this.updateUfo();
+
+                    this.updateUfoText();
+
+                    this.gameClear();
                 });
 
             }
@@ -410,7 +430,6 @@ namespace SpaceInvadian
                         this.enemyList.Remove(enemy);
 
                         // 爆発発生
-
                         var enemyExp = new Image()
                         {
                             Source = new BitmapImage(new Uri("/Assets/exp.png", UriKind.Relative)),
@@ -434,6 +453,11 @@ namespace SpaceInvadian
                 }
 
                 if (isBreak)
+                {
+                    continue;
+                }
+
+                if (this.putUfoExp(ownBullet))
                 {
                     continue;
                 }
@@ -528,7 +552,16 @@ namespace SpaceInvadian
                 var enemyBullet = this.enemyBulletList[i - 1];
 
                 // 自機に当たっているかを判定
-                // あとで
+                if(GameUtil.IsCollision(enemyBullet.CurrentImage, this.own))
+                {
+                    // 自機のぶつかる
+                    this.Canvas.Children.Remove(this.own);
+                    this.frameUpdateTimer.Stop();
+
+                    this.gameOver();
+
+                    return;
+                }
 
                 // 一番手前まで来たかどうか判定
                 if(Canvas.GetTop(enemyBullet.CurrentImage) + enemyBullet.CurrentImage.Height >= this.Canvas.ActualHeight)
@@ -726,6 +759,165 @@ namespace SpaceInvadian
             Canvas.SetTop(ownExp, this.Canvas.ActualHeight - 12);
             Canvas.SetLeft(ownExp, Canvas.GetLeft(enemyBullet) - ownExp.Width / 2);
         }
+
+        /// <summary>
+        /// ゲームオーバー処理を行います。
+        /// </summary>
+        private void gameOver()
+        {
+
+        }
+
+        /// <summary>
+        /// ゲームクリア処理を行います。
+        /// </summary>
+        private void gameClear()
+        {
+            if(this.enemyList.Count <= 0)
+            {
+                this.frameUpdateTimer.Stop();
+            }
+        }
+
+        //
+        // UFOの処理
+        // - - - - - - - - - - - - - - - - - - -
+
+        /// <summary>
+        /// UFOを配置します。
+        /// </summary>
+        private void putUfo()
+        {
+            // タイマー更新
+            if(this.ufoArrivalTimer <= ufoArrivalImterval)
+            {
+                this.ufoArrivalTimer++;
+                return;
+            }
+
+            this.ufoArrivalTimer = 0;
+
+            // UFO出現処理
+            var ufo = new Image()
+            {
+                Source = new BitmapImage(new Uri("/Assets/inv_ufo.png", UriKind.Relative)),
+                Width = 45,
+                Height =21,
+                Tag = 100 + this.rand.Next(0, 4) * 50, // 撃墜したときのスコア100～300(適当)
+            };
+
+            this.Canvas.Children.Add(ufo);
+            this.ufo = ufo;
+
+            Canvas.SetTop(this.ufo, 30);
+            Canvas.SetLeft(this.ufo, this.Canvas.ActualWidth - this.ufo.Width);
+        }
+
+        /// <summary>
+        /// UFOを更新します。
+        /// </summary>
+        private void updateUfo()
+        {
+            if(this.ufo == null)
+            {
+                return;
+            }
+
+            // 右端についていたら除去
+            if(Canvas.GetLeft(this.ufo) <= 0)
+            {
+                this.Canvas.Children.Remove(this.ufo);
+                this.ufo = null;
+                return;
+            }
+
+            // 移動
+            Canvas.SetLeft(this.ufo, Canvas.GetLeft(this.ufo) -2);
+        }
+
+        /// <summary>
+        /// UFOの爆発表示を行います。
+        /// </summary>
+        private bool putUfoExp(Image ownBullet)
+        {
+            if(this.ufo == null)
+            {
+                return false;
+            }
+
+            if(!GameUtil.IsCollision(ownBullet, this.ufo))
+            {
+                return false;
+            }
+
+            // 爆発発生
+            var enemyExp = new Image()
+            {
+                Source = new BitmapImage(new Uri("/Assets/exp.png", UriKind.Relative)),
+                Width = 39,
+                Height = 21,
+            };
+
+            this.Canvas.Children.Add(enemyExp);
+            this.enemyExpList.Add(new TimerdImage() { Image = enemyExp });
+
+            Canvas.SetTop(enemyExp, Canvas.GetTop(this.ufo) + (this.ufo.Height - enemyExp.Height) / 2);
+            Canvas.SetLeft(enemyExp, Canvas.GetLeft(this.ufo) + (this.ufo.Width - enemyExp.Width) / 2);
+
+            // 弾の除去
+            this.removeOwnBullet(ownBullet);
+
+            // UFO撃墜スコアの加算
+            this.scoreMgr.AddScore((int)this.ufo.Tag);
+
+            // UFOのスコア表示
+            this.putUfoText(this.ufo);
+
+            // UFOの除去
+            this.Canvas.Children.Remove(this.ufo);
+            this.ufo = null;
+
+            return true;
+        }
+
+        /// <summary>
+        /// UFOのスコア表示を行います。
+        /// </summary>
+        /// <param name="ufo"></param>
+        private void putUfoText(Image ufo)
+        {
+            var scoreText = new TimerdText()
+            {
+                Max = 30,
+                Text = new TextBlock() { Text = ufo.Tag.ToString() },
+            };
+
+            this.Canvas.Children.Add(scoreText.Text);
+            this.ufoScore = scoreText;
+
+            Canvas.SetTop(scoreText.Text, Canvas.GetTop(ufo) + ufo.Height + 10);
+            Canvas.SetLeft(scoreText.Text, Canvas.GetLeft(ufo));
+        }
+
+        /// <summary>
+        /// UFOのスコア表示を更新します。
+        /// </summary>
+        private void updateUfoText()
+        {
+            if(this.ufoScore == null)
+            {
+                return;
+            }
+
+            if(this.ufoScore.Elapsed > ufoScore.Max)
+            {
+                this.Canvas.Children.Remove(this.ufoScore.Text);
+                this.ufoScore = null;
+                return;
+            }
+
+            this.ufoScore.Elapsed++;
+        }
     }
 
     /// <summary>
@@ -922,5 +1114,26 @@ namespace SpaceInvadian
         /// 画像を設定または取得します。
         /// </summary>
         public Image Image { get; set; }
+    }
+
+    /// <summary>
+    /// 整数とテキストの組み合わせを表します。
+    /// </summary>
+    public class TimerdText
+    {
+        /// <summary>
+        /// 表示時間を設定または取得します。
+        /// </summary>
+        public int Max { get; set; }
+
+        /// <summary>
+        /// 経過時間を設定または取得します。
+        /// </summary>
+        public int Elapsed { get; set; }
+
+        /// <summary>
+        /// テキストを設定または取得します。
+        /// </summary>
+        public TextBlock Text { get; set; }
     }
 }
