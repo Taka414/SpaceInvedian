@@ -123,7 +123,7 @@ namespace SpaceInvadian
             this.InitializeComponent();
 
             // 画面更新用のタイマーを初期化
-            this.frameUpdateTimer = new Timer(1.0 / 60);
+            this.frameUpdateTimer = new Timer(15/*mcsc*/); // どうせOS割り込み周期が16ms以下は発生しない
             this.frameUpdateTimer.Elapsed += FrameUpdateTimer_Update;
             this.frameUpdateTimer.Start();
         }
