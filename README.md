@@ -11,6 +11,10 @@
 
 インベーダーを意識した、オリジナルのイカのゲーム
 
+http://takachan.hatenablog.com/entry/2017/03/17/013628
+
 ## invader_cloneブランチ
 
 インベーダーをリスペストしたインベーダークローンゲーム
+
+http://takachan.hatenablog.com/entry/2017/03/20/005218
